@@ -5,9 +5,11 @@ import path from "path";
 
 const calendar = google.calendar("v3");
 
-// Path to your service account key file (downloaded JSON)
-
-const KEYFILEPATH = path.join(process.cwd(), "credentials.json");
+const credentialsJson = Buffer.from(
+  process.env.GOOGLE_CREDENTIALS_BASE64 || "",
+  "base64"
+).toString("utf-8");
+const GOOGLE_CREDENTIALS = JSON.parse(credentialsJson);
 
 async function getGoogleCalendarEvents(
   auth: any,
@@ -38,7 +40,7 @@ export default async function handler(
 ) {
   try {
     const auth = new google.auth.GoogleAuth({
-      keyFile: KEYFILEPATH,
+      credentials: GOOGLE_CREDENTIALS,
       scopes: ["https://www.googleapis.com/auth/calendar"],
     });
 
