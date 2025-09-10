@@ -1,6 +1,7 @@
 import Image from "next/image.js";
 import Modal from "../../components/Modal";
 import { useState, useEffect } from "react";
+import { formatRelative, format } from "date-fns";
 
 export type CalendarDateTime = {
   dateTime?: string;
@@ -39,6 +40,28 @@ function Enterprise() {
   const [events, updateEvents] = useState<CalendarEvent[]>([]);
   const [isBooked, updateIsBooked] = useState<boolean | null>(null);
   const [bookedUntil, updateBookedUntil] = useState<string | null>(null);
+  const [featuredEvent, updateFeaturedEvent] = useState<CalendarEvent | null>(
+    null
+  );
+
+  const [currentTime, updateCurrentTime] = useState(
+    new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+  );
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const time = new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      updateCurrentTime(time);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     async function fetchEvents() {
@@ -47,6 +70,8 @@ function Enterprise() {
         const data = await response.json();
         updateEvents(data.events as CalendarEvent[]);
         const now = new Date();
+
+        console.log(data);
         const booked = data.events.some((event: CalendarEvent) => {
           const start = new Date(
             event.start.dateTime || event.start.date || ""
@@ -71,6 +96,7 @@ function Enterprise() {
         } else {
           updateBookedUntil(null);
         }
+        updateFeaturedEvent(data.events[0] || null);
         updateIsBooked(booked);
       } catch (error) {
         console.error("Failed to fetch events:", error);
@@ -84,79 +110,129 @@ function Enterprise() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-8">
+    <div className="h-[calc(100vh-48px)] flex bg-gray-50">
       <div className="relative flex justify-center">
         <div
           className={`${
             isBooked ? "bg-red-600" : "bg-green-600"
-          } rounded-2xl shadow-2xl p-4 flex flex-col w-96
-    transform transition-transform duration-300`}
+          } p-6 flex flex-col justify-between w-[60vw] h-full`}
         >
-          <div className="flex justify-start mb-6">
-            <div
-              onClick={() => updateisCalenderModalOpen(true)}
-              className="cursor-pointer hover:opacity-80 transition-opacity duration-200"
-              aria-label="Open calendar"
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ")
-                  updateisCalenderModalOpen(true);
-              }}
-            >
-              <Image
-                className="w-20 h-20"
-                src="/calender-white.png"
-                alt="calendar"
-                width={80}
-                height={80}
-              />
-            </div>
+          <div className="text-white text-2xl mb-4">
+            <p>{currentTime}</p>
           </div>
 
-          <div className="flex flex-col items-center">
-            <p className="text-5xl font-extrabold text-white mb-6 tracking-wide">
-              {room.name}
-            </p>
-
-            <div className="bg-white rounded-full p-4 mb-8 flex items-center justify-center shadow-md">
+          <div className="flex flex-row items-center justify-center">
+            <div className="bg-white rounded-full p-4 flex items-center justify-center">
               {isBooked ? (
-                <Image width={36} height={36} src="/redX.png" alt="Booked" />
+                <Image width={64} height={64} src="/redX.png" alt="Booked" />
               ) : (
                 <Image
-                  width={36}
-                  height={36}
+                  width={64}
+                  height={64}
                   src="/greenTick.png"
                   alt="Available"
                 />
               )}
             </div>
 
-            <div className="mb-4 min-h-[30px]">
+            <div className="ml-6 text-left">
+              <p className="text-6xl font-extrabold text-white tracking-wide">
+                {room.name}
+              </p>
               {isBooked && bookedUntil && (
-                <p className="text-white font-semibold text-xl italic select-none">
+                <p className="text-white font-semibold text-2xl italic select-none mt-4">
                   Booked until {bookedUntil}
                 </p>
               )}
             </div>
-
-            <div style={{ height: "36px" }}>
-              {!isBooked && (
-                <p
-                  className="text-green-900 font-semibold cursor-pointer hover:underline text-xl select-none"
-                  onClick={() => updateIsBookingModalOpen(true)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ")
-                      updateIsBookingModalOpen(true);
-                  }}
-                >
-                  Book Now
-                </p>
-              )}
-            </div>
           </div>
+
+          <div className="mt-8 min-h-[56px]">
+            {!isBooked && (
+              <button
+                onClick={() => updateIsBookingModalOpen(true)}
+                className="w-full bg-white text-green-700 font-bold text-xl py-4 rounded-lg hover:bg-green-100 transition duration-200"
+              >
+                Book Now
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="w-full p-4 flex flex-col overflow-scroll">
+        <div className="mx-auto bg-white rounded-xl p-4 border-[2px] border-black w-full">
+          <div className={`flex items-baseline justify-end`}>
+            {isBooked ? (
+              <div className={`flex items-baseline justify-end animate-pulse`}>
+                <div className="h-3 w-3 bg-red-500 rounded-full mr-2"></div>
+                <p className="text-md text-red-500 mb-1 font-weight-bold uppercase">
+                  In Progress
+                </p>
+              </div>
+            ) : (
+              <div className={`flex items-baseline justify-end`}>
+                <div className="h-3 w-3 bg-green-500 rounded-full mr-2"></div>
+                <p className="text-md text-green-500 mb-1 font-weight-bold uppercase">
+                  Next meeting
+                </p>
+              </div>
+            )}
+          </div>
+          <p className="text-lg font-semibold text-gray-800">Booked by Steve</p>
+          <p className="text-md text-gray-600 mb-2">
+            {featuredEvent?.summary || featuredEvent?.description || "No title"}
+          </p>
+
+          <div className="flex justify-between text-lg text-gray-500 ">
+            <p className="font-bold capitalize ">
+              <p>
+                {formatRelative(
+                  new Date(featuredEvent?.start.dateTime || ""),
+                  new Date()
+                )}
+              </p>
+            </p>
+
+            <p>{format(featuredEvent?.end.dateTime || "", "h:mm a")}</p>
+          </div>
+        </div>
+        <div className="flex flex-col gap-4 ml-4 border-l-[2px] border-black pt-6">
+          {events.slice(1).map((event, index) => (
+            <div key={event.id || index} className="p-4 flex items-center">
+              <div className="ml-[-29px]">
+                <div className="h-6 w-6 bg-gray-400 rounded-full"></div>
+              </div>
+              <div className="w-full ml-6">
+                <p className="text-lg font-semibold text-gray-800">
+                  Booked by Steve
+                </p>
+                <p className="text-md text-gray-600 mb-2">
+                  {event.summary || event.description || "No title"}
+                </p>
+
+                <div className="flex justify-between text-lg text-gray-500">
+                  <p className="font-bold capitalize ">
+                    <p>
+                      {formatRelative(
+                        new Date(event?.start.dateTime || ""),
+                        new Date()
+                      )}
+                    </p>
+                  </p>
+
+                  <p>
+                    {event.end?.dateTime
+                      ? new Date(event.end.dateTime).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : "N/A"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -173,7 +249,7 @@ function Enterprise() {
 
       {isCalenderModalOpen && (
         <Modal
-          header={`${room.name} Calendar`}
+          header={`Upcoming ${room.name} Calendar Bookings`}
           updateIsModalOpen={updateisCalenderModalOpen}
         >
           <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-4">
@@ -188,15 +264,20 @@ function Enterprise() {
                 <p className="font-semibold text-2xl text-gray-900">
                   {event.summary ?? "No Title"}
                 </p>
-                <p className="text-base text-gray-600 mt-1 select-text">
-                  {new Date(
-                    event.start.dateTime || event.start.date || ""
-                  ).toLocaleString()}
-                  -
-                  {new Date(
-                    event.end.dateTime || event.end.date || ""
-                  ).toLocaleString()}
-                </p>
+                <div className="text-base text-gray-600 mt-1 select-text flex">
+                  <p>
+                    {new Date(
+                      event.start.dateTime || event.start.date || ""
+                    ).toLocaleString("en-GB")}
+                  </p>
+                  <span className="ml-2 mr-2">-</span>
+                  <p>
+                    {" "}
+                    {new Date(
+                      event.end.dateTime || event.end.date || ""
+                    ).toLocaleString("en-GB")}
+                  </p>
+                </div>
               </div>
             ))}
           </div>

@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { NextApiRequest, NextApiResponse } from "next";
 import { google } from "googleapis";
-import path from "path";
 
 const calendar = google.calendar("v3");
 
@@ -11,13 +10,14 @@ const credentialsJson = Buffer.from(
 ).toString("utf-8");
 const GOOGLE_CREDENTIALS = JSON.parse(credentialsJson);
 
-async function getGoogleCalendarEvents(
-  auth: any,
-  calendarId: string,
-  timeMin?: string,
-  timeMax?: string
-) {
+async function getGoogleCalendarEvents(auth: any, calendarId: string) {
   try {
+    const now = new Date();
+    const timeMin = now.toISOString();
+    const twoDaysLater = new Date();
+    twoDaysLater.setDate(now.getDate() + 2);
+    const timeMax = twoDaysLater.toISOString();
+
     const res = await calendar.events.list({
       auth,
       calendarId,
@@ -27,7 +27,13 @@ async function getGoogleCalendarEvents(
       orderBy: "startTime",
     });
 
-    return res.data.items || [];
+    const allEvents = res.data.items || [];
+    const upcomingOrOngoingEvents = allEvents.filter((event) => {
+      const endTime = new Date(event.end?.dateTime || event.end?.date || "");
+      return endTime > now;
+    });
+
+    return upcomingOrOngoingEvents;
   } catch (error) {
     console.error("Error fetching Google Calendar events:", error);
     throw error;
@@ -51,12 +57,7 @@ export default async function handler(
       return res.status(400).json({ error: "Missing calendarId" });
     }
 
-    const events = await getGoogleCalendarEvents(
-      client,
-      calendarId,
-      req.query.timeMin as string,
-      req.query.timeMax as string
-    );
+    const events = await getGoogleCalendarEvents(client, calendarId);
 
     res.status(200).json({ events });
   } catch (error) {
