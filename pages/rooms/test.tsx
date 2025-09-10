@@ -116,7 +116,7 @@ function Enterprise() {
             isBooked ? "bg-red-600" : "bg-green-600"
           } p-6 flex flex-col justify-between w-[60vw] h-full`}
         >
-          <div className="text-white text-2xl mb-4">
+          <div className="text-white text-4xl mb-4">
             <p>{currentTime}</p>
           </div>
 
