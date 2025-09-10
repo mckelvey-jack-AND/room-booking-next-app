@@ -35,8 +35,7 @@ function Enterprise() {
 
   const [isBookingModalOpen, updateIsBookingModalOpen] =
     useState<boolean>(false);
-  const [isCalenderModalOpen, updateisCalenderModalOpen] =
-    useState<boolean>(false);
+
   const [events, updateEvents] = useState<CalendarEvent[]>([]);
   const [isBooked, updateIsBooked] = useState<boolean | null>(null);
   const [bookedUntil, updateBookedUntil] = useState<string | null>(null);
@@ -106,7 +105,7 @@ function Enterprise() {
   }, [room.id]);
 
   if (isBooked === null) {
-    return null;
+    return <LoadingShell />;
   }
 
   return (
@@ -159,7 +158,6 @@ function Enterprise() {
           </div>
         </div>
       </div>
-
       <div className="w-full p-4 flex flex-col overflow-scroll">
         <div className="mx-auto bg-white rounded-xl p-4 border-[2px] border-black w-full">
           <div className={`flex items-baseline justify-end`}>
@@ -235,7 +233,6 @@ function Enterprise() {
           ))}
         </div>
       </div>
-
       {isBookingModalOpen && (
         <Modal
           header={`${room.name} Booking`}
@@ -246,48 +243,42 @@ function Enterprise() {
           </p>
         </Modal>
       )}
-
-      {isCalenderModalOpen && (
-        <Modal
-          header={`Upcoming ${room.name} Calendar Bookings`}
-          updateIsModalOpen={updateisCalenderModalOpen}
-        >
-          <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-4">
-            {events.length === 0 && (
-              <p className="text-gray-600 italic">No upcoming events.</p>
-            )}
-            {events.map((event, index) => (
-              <div
-                key={index}
-                className="mb-2 border-b border-gray-200 pb-3 last:border-b-0 last:pb-0"
-              >
-                <p className="font-semibold text-2xl text-gray-900">
-                  {event.summary ?? "No Title"}
-                </p>
-                <div className="text-base text-gray-600 mt-1 select-text flex">
-                  <p>
-                    {new Date(
-                      event.start.dateTime || event.start.date || ""
-                    ).toLocaleString("en-GB")}
-                  </p>
-                  <span className="ml-2 mr-2">-</span>
-                  <p>
-                    {" "}
-                    {new Date(
-                      event.end.dateTime || event.end.date || ""
-                    ).toLocaleString("en-GB")}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-          <p className="text-lg mt-6 text-gray-700">
-            This is the calendar modal content.
-          </p>
-        </Modal>
-      )}
     </div>
   );
 }
+
+const LoadingShell = () => {
+  return (
+    <div className="h-[calc(100vh-48px)] flex bg-gray-100">
+      <div className="relative flex  w-[60vw] p-6 bg-gray-200 animate-pulse flex-col justify-between">
+        <div className="h-6 w-24 bg-gray-300 rounded mb-6" />
+      </div>
+
+      <div className="p-4 flex flex-col">
+        <div className="bg-white rounded-xl p-4  w-full mb-6 animate-pulse">
+          <div className="h-4 w-24 bg-gray-300 rounded mb-2" />
+          <div className="h-5 w-48 bg-gray-300 rounded mb-2" />
+          <div className="h-4 w-64 bg-gray-200 rounded mb-4" />
+          <div className="flex justify-between">
+            <div className="h-4 w-24 bg-gray-300 rounded" />
+            <div className="h-4 w-24 bg-gray-300 rounded" />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4 ml-4 border-black pt-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="p-4 flex items-center animate-pulse">
+              <div className="ml-[-29px]"></div>
+              <div className="w-full ml-6">
+                <div className="h-5 w-36 bg-gray-300 rounded mb-2" />
+                <div className="h-4 w-64 bg-gray-200 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default Enterprise;
