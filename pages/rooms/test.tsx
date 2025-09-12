@@ -108,6 +108,12 @@ function Enterprise() {
     return <LoadingShell />;
   }
 
+  if (events.length === 0) {
+    return <p>no events ui</p>;
+  }
+
+  return null;
+
   return (
     <div className="h-[calc(100vh-48px)] flex bg-gray-50">
       <div className="relative flex justify-center">
@@ -195,43 +201,48 @@ function Enterprise() {
             <p>{format(featuredEvent?.end.dateTime || "", "h:mm a")}</p>
           </div>
         </div>
-        <div className="flex flex-col gap-4 ml-4 border-l-[2px] border-black pt-6">
-          {events.slice(1).map((event, index) => (
-            <div key={event.id || index} className="p-4 flex items-center">
-              <div className="ml-[-29px]">
-                <div className="h-6 w-6 bg-gray-400 rounded-full"></div>
-              </div>
-              <div className="w-full ml-6">
-                <p className="text-lg font-semibold text-gray-800">
-                  Booked by Steve
-                </p>
-                <p className="text-md text-gray-600 mb-2">
-                  {event.summary || event.description || "No title"}
-                </p>
 
-                <div className="flex justify-between text-lg text-gray-500">
-                  <p className="font-bold capitalize ">
-                    <p>
-                      {formatRelative(
-                        new Date(event?.start.dateTime || ""),
-                        new Date()
-                      )}
+        {events ? (
+          <div className="flex flex-col gap-4 ml-4 border-l-[2px] border-black pt-6">
+            {events.slice(1).map((event, index) => (
+              <div key={event.id || index} className="p-4 flex items-center">
+                <div className="ml-[-29px]">
+                  <div className="h-6 w-6 bg-gray-400 rounded-full"></div>
+                </div>
+                <div className="w-full ml-6">
+                  <p className="text-lg font-semibold text-gray-800">
+                    Booked by Steve
+                  </p>
+                  <p className="text-md text-gray-600 mb-2">
+                    {event.summary || event.description || "No title"}
+                  </p>
+
+                  <div className="flex justify-between text-lg text-gray-500">
+                    <p className="font-bold capitalize ">
+                      <p>
+                        {formatRelative(
+                          new Date(event?.start.dateTime || ""),
+                          new Date()
+                        )}
+                      </p>
                     </p>
-                  </p>
 
-                  <p>
-                    {event.end?.dateTime
-                      ? new Date(event.end.dateTime).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : "N/A"}
-                  </p>
+                    <p>
+                      {event.end?.dateTime
+                        ? new Date(event.end.dateTime).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : "N/A"}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <p>No events</p>
+        )}
       </div>
       {isBookingModalOpen && (
         <Modal
