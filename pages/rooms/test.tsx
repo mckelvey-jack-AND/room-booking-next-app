@@ -112,8 +112,6 @@ function Enterprise() {
     return <p>no events ui</p>;
   }
 
-  return null;
-
   return (
     <div className="h-[calc(100vh-48px)] flex bg-gray-50">
       <div className="relative flex justify-center">
